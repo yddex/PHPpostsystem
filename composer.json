@@ -1,0 +1,12 @@
+{
+    "name": "maxim/postsystem",
+    "autoload": {
+        "psr-4": {
+            "Maxim\\Postsystem\\": "src/"
+        }
+    },
+    "require": {
+        "fakerphp/faker": "^1.20",
+        "roave/security-advisories": "dev-latest"
+    }
+}
