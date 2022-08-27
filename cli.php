@@ -3,35 +3,23 @@
 require_once __DIR__ . "/vendor/autoload.php";
 
 use Maxim\Postsystem\Blog\Post;
-use Maxim\Postsystem\MyFaker\MyFaker;
+use Maxim\Postsystem\Exceptions\AppException;
 use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\Repositories\SqliteUserRepository;
+use Maxim\Postsystem\UUID;
 
-// spl_autoload_register(function ($class){
-
-//     $file = str_replace("\\", DIRECTORY_SEPARATOR, $class) . ".php";
-//     //удаление вендора из пути
-//     $file = substr_replace($file, "", 0, strpos($file, DIRECTORY_SEPARATOR) + 1);
-//     //замена названия проекта на папку с исходниками
-//     $file = substr_replace($file, "src", 0, strpos($file, DIRECTORY_SEPARATOR));
-//     require_once $file;
-
-// });
 try {
-    $faker = Faker\Factory::create("ru_RU");
-    $myFaker = new MyFaker($faker);
-    if (in_array("user", $argv)) {
-        echo $myFaker->getUser() . PHP_EOL;
-    }
+    $connection = require_once __DIR__ . "/sqllitepdo.php";
+    $userRepository = new SqliteUserRepository($connection);
 
-    if (in_array("post", $argv)) {
-        echo $myFaker->getPost() . PHP_EOL;
-    }
+    echo $userRepository->getByLogin("Admin");
 
-    if (in_array("comment", $argv)) {
-        echo $myFaker->getComment() . PHP_EOL;
-    }
-} catch (Exception $e) {
 
+} catch (AppException $e) {
+    echo $e->getMessage();
+} catch (Throwable $e)
+{
+    echo "ERROR" . PHP_EOL;
     echo $e->getMessage();
 }

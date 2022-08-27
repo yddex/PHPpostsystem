@@ -3,30 +3,32 @@
 namespace Maxim\Postsystem\Person;
 
 use DateTimeImmutable;
+use Maxim\Postsystem\UUID;
 
 class User
 {
-    private int $id;
+    private UUID $uuid;
     private Name $name;
     private DateTimeImmutable $dateCreate;
-    private ?string $login;
+    private string $login;
 
-    public function __construct(int $id, Name $name, DateTimeImmutable $dateCreate, ?string $login = null)
+    public function __construct(UUID $uuid, Name $name, string $login)
     {
-        $this->id = $id;
+        $this->uuid = $uuid;
         $this->name = $name;
-        $this->dateCreate = $dateCreate;
+        $this->dateCreate = new DateTimeImmutable();
         $this->login = $login;
     }
 
+
     /**
-     * Get the value of id
+     * Get the value of uuid
      *
-     * @return int
+     * @return UUID
      */
-    public function getId(): int
+    public function getUuid(): UUID
     {
-        return $this->id;
+        return $this->uuid;
     }
 
     /**
@@ -39,6 +41,16 @@ class User
         return $this->name;
     }
 
+
+    /**
+     * Get the value of login
+     *
+     * @return string
+     */
+    public function getLogin(): string
+    {
+        return $this->login;
+    }
 
     /**
      * Get the value of dateCreate
@@ -54,7 +66,9 @@ class User
     public function __toString()
     {
         $format = "d.m.Y";
-        return "Пользователь $this->name. Дата создания " .  $this->dateCreate->format($format);
+        return "Пользователь $this->name. UUID: $this->uuid" . PHP_EOL .  "Дата создания: " .  $this->dateCreate->format($format);
     }
+
+
 
 }

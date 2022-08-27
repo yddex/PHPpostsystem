@@ -3,31 +3,32 @@
 namespace Maxim\Postsystem\Blog;
 
 use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\UUID;
 
 class Post
 {
-    private int $id;
+    private UUID $uuid;
     private User $author;
     private string $title;
     private string $text;
-    public function __construct(int $id, User $author, string $title, string $text)
+    public function __construct(UUID $uuid, User $author, string $title, string $text)
     {
-        $this->id = $id;
+        $this->uuid = $uuid;
         $this->author = $author;
         $this->title = $title;
         $this->text = $text;
     }
 
-
-    /**
-     * Get the value of id
+        /**
+     * Get the value of uuid
      *
-     * @return int
+     * @return UUID
      */
-    public function getId(): int
+    public function getUuid(): UUID
     {
-        return $this->id;
+        return $this->uuid;
     }
+
 
     /**
      * Get the value of author
@@ -61,9 +62,11 @@ class Post
 
     public function __toString()
     {
-        return "Пост №$this->id" . PHP_EOL . 
+        return "Пост №$this->uuid" . PHP_EOL . 
             "Автор: " . $this->author->getName() . PHP_EOL .
             "Оглавление: $this->title" . PHP_EOL .
             "Текст: $this->text";
     }
+
+
 }

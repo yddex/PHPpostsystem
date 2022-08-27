@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:php_postsystem}/datebase.sqlite",
+            "name": "postsystem"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
