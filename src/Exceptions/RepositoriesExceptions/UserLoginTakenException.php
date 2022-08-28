@@ -3,4 +3,4 @@ namespace Maxim\Postsystem\Exceptions\RepositoriesExceptions;
 
 use Maxim\Postsystem\Exceptions\AppException;
 
-class UserLoginException extends AppException{}
+class UserLoginTakenException extends AppException{}

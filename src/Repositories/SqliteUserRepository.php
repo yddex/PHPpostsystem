@@ -1,8 +1,7 @@
 <?php
 namespace Maxim\Postsystem\Repositories;
 
-use Maxim\Postsystem\Exceptions\RepositoriesExceptions\NotFoundUUID;
-use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserLoginException;
+use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserLoginTakenException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Person\User;
@@ -66,7 +65,7 @@ class SqliteUserRepository implements IUserRepository
     public function save(User $user) :void
     {   
         if($this->includeLogin($user->getLogin())){
-            throw new UserLoginException("this login is already taken");
+            throw new UserLoginTakenException("this login is already taken");
         }
 
         $statement = $this->connection->prepare("INSERT INTO users (uuid, name, surname, login)
