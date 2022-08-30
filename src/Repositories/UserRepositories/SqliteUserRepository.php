@@ -1,5 +1,5 @@
 <?php
-namespace Maxim\Postsystem\Repositories;
+namespace Maxim\Postsystem\Repositories\UserRepositories;
 
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserLoginTakenException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;

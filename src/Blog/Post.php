@@ -29,16 +29,16 @@ class Post
         return $this->uuid;
     }
 
-
-    /**
+        /**
      * Get the value of author
      *
-     * @return int
+     * @return User
      */
     public function getAuthor(): User
     {
         return $this->author;
     }
+  
 
     /**
      * Get the value of title
@@ -67,6 +67,8 @@ class Post
             "Оглавление: $this->title" . PHP_EOL .
             "Текст: $this->text";
     }
+
+
 
 
 }

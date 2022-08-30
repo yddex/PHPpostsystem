@@ -5,11 +5,11 @@ use Maxim\Postsystem\Exceptions\ComandExceptions\CommandException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Person\User;
-use Maxim\Postsystem\Repositories\IUserRepository;
+use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
 
 class CreateUserCommand
-{
+{  
     private IUserRepository $userRepository;
 
     public function __construct(IUserRepository $userRepository)

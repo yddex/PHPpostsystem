@@ -1,5 +1,5 @@
 <?php
-namespace Maxim\Postsystem\Repositories;
+namespace Maxim\Postsystem\Repositories\UserRepositories;
 
 use Maxim\Postsystem\Person\User;
 use Maxim\Postsystem\UUID;
