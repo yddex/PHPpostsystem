@@ -1,7 +1,7 @@
 <?php
 namespace Maxim\Postsystem\Repositories\UserRepositories;
 
-use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\UUID;
 
 interface IUserRepository

@@ -2,7 +2,7 @@
 
 namespace Maxim\Postsystem\Blog;
 
-use Maxim\Postsystem\Person\User;
+
 use Maxim\Postsystem\UUID;
 
 class Comment

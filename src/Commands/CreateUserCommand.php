@@ -4,7 +4,7 @@ namespace Maxim\Postsystem\Commands;
 use Maxim\Postsystem\Exceptions\ComandExceptions\CommandException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Person\Name;
-use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
 
@@ -28,6 +28,7 @@ class CreateUserCommand
         }
         
         $this->userRepository->save(new User(UUID::random(), $name, $login));
+        
     }
 
     private function userExists(string $login) :bool

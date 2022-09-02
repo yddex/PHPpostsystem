@@ -18,9 +18,9 @@ use Maxim\Postsystem\UUID;
 $connection = require_once __DIR__ . "/sqllitepdo.php";
 try {
 
-    $userRepository = new SqliteUserRepository($connection);
-    $postRepository = new SqlitePostRepository($connection);
-    $commentRepository = new SqliteCommentRepository($connection, $userRepository, $postRepository);
+    // $userRepository = new SqliteUserRepository($connection);
+    // $postRepository = new SqlitePostRepository($connection);
+    // $commentRepository = new SqliteCommentRepository($connection, $userRepository, $postRepository);
 
 
 //    $createUserCommand = new CreateUserCommand($userRepository);

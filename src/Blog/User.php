@@ -1,12 +1,13 @@
 <?php
+namespace Maxim\Postsystem\Blog;
 
-namespace Maxim\Postsystem\Person;
 
 use DateTimeImmutable;
+use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\UUID;
 
 class User
-{
+{  
     private UUID $uuid;
     private Name $name;
     private DateTimeImmutable $dateCreate;

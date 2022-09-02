@@ -4,7 +4,7 @@ namespace Maxim\Postsystem\Repositories\UserRepositories;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserLoginTakenException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Person\Name;
-use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\UUID;
 use PDO;
 use PDOStatement;

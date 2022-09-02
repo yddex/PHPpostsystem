@@ -16,16 +16,10 @@ class SqlitePostRepository implements IPostRepository
     private PDO $connection;
     private IUserRepository $userRepository;
 
-    public function __construct(PDO $connection, ?IUserRepository $userRepository = null)
+    public function __construct(PDO $connection, IUserRepository $userRepository)
     {
         $this->connection = $connection;
-        if(is_null($userRepository))
-        {
-            $this->userRepository = new SqliteUserRepository($connection);
-        }else{
-
-            $this->userRepository = $userRepository;
-        }
+        $this->userRepository = $userRepository;
     }
 
     //запись в таблицу
@@ -89,8 +83,11 @@ class SqlitePostRepository implements IPostRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM posts WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$uuid]);
-      
-        return $this->getPostFromStatement($statement);
+        try{
+            return $this->getPostFromStatement($statement);
+        }catch(PostNotFoundException $e){
+            throw new PostNotFoundException("Post not found. UUID: " . (string)$uuid);
+        }
 
     }
 
