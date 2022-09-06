@@ -2,7 +2,7 @@
 namespace Maxim\Postsystem\Repositories\PostRepositories;
 
 use Maxim\Postsystem\Blog\Post;
-use Maxim\Postsystem\Person\User;
+use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\UUID;
 
 interface IPostRepository
@@ -11,4 +11,5 @@ interface IPostRepository
     public function getAll() :array;
     public function getByUUID(UUID $uuid) :Post;
     public function getAllByAuthor(User $author) :array;
+    public function delete(Post $post) :void;
 }

@@ -50,7 +50,13 @@ class SqliteUserRepository implements IUserRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM users WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$uuid]);
-        return $this->getUserStatement($statement);
+
+        try{
+            return $this->getUserStatement($statement);
+
+        }catch(UserNotFoundException){
+            throw new UserNotFoundException("User not found by uuid: " . $uuid);
+        }
     }
 
     //поиск по логину
@@ -58,14 +64,20 @@ class SqliteUserRepository implements IUserRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM users WHERE login LIKE :login");
         $statement->execute(["login" => $login]);
-        return $this->getUserStatement($statement);
+
+        try{
+            return $this->getUserStatement($statement);
+
+        }catch(UserNotFoundException){
+            throw new UserNotFoundException("User not found by login: " . $login);
+        }  
     }
 
     //Сохранение в дб
     public function save(User $user) :void
     {   
         if($this->includeLogin($user->getLogin())){
-            throw new UserLoginTakenException("this login is already taken");
+            throw new UserLoginTakenException("This login is already taken: " . $user->getLogin());
         }
 
         $statement = $this->connection->prepare("INSERT INTO users (uuid, name, surname, login)
@@ -79,4 +91,5 @@ class SqliteUserRepository implements IUserRepository
             "login" => $user->getLogin()
         ]);
     }
+
 }

@@ -3,8 +3,8 @@
 namespace Maxim\Postsystem\Repositories\PostRepositories;
 
 use Maxim\Postsystem\Blog\Post;
+use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\PostNotFoundException;
-use Maxim\Postsystem\Person\User;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
 use Maxim\Postsystem\UUID;
@@ -97,7 +97,13 @@ class SqlitePostRepository implements IPostRepository
         $statement = $this->connection->prepare("SELECT * FROM posts WHERE author_uuid LIKE :author_uuid");
         $statement->execute(["author_uuid" => (string)$author->getUuid()]);
 
-
         return $this->getAllPostsFromStatement($statement);
+    }
+
+    //удаление поста по UUID
+    public function delete(Post $post) :void
+    {   
+        $statement = $this->connection->prepare("DELETE FROM posts WHERE uuid LIKE :uuid");
+        $statement->execute(["uuid" => (string)$post->getUuid()]);
     }
 }

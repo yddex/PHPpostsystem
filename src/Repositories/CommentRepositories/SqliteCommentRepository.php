@@ -85,4 +85,17 @@ class SqliteCommentRepository implements ICommentRepository
         $statement->execute(["post_uuid" => (string)$post->getUuid()]);
         return $this->getAllCommentsFromStatement($statement);
     }
+
+    //удаление комментария из дб
+    public function delete(Comment $comment) :void
+    {
+        $statement = $this->connection->prepare("DELETE FROM comments WHERE uuid LIKE :uuid");
+        $statement->execute(["uuid" => (string)$comment->getUuid()]);
+    }
+
+    public function deleteAllByPost(Post $post) :void
+    {
+        $statement = $this->connection->prepare("DELETE FROM comments WHERE post_uuid LIKE :post_uuid");
+        $statement->execute(["post_uuid" => (string)$post->getUuid()]);
+    }
 }
