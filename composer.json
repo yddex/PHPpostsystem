@@ -5,6 +5,11 @@
             "Maxim\\Postsystem\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+        "Maxim\\Postsystem\\UnitTests\\": "tests/"
+        }
+    },
     "scripts": {
         "test": "phpunit tests --testdox --colors"
     },

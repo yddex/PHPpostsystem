@@ -1,6 +1,6 @@
 <?php
+namespace Maxim\Postsystem\UnitTests\RepositorIes\CommentRepositories;
 
-namespace Maxim\Postsystem\tests\Repository\CommentRepositories;
 
 use Maxim\Postsystem\Blog\Comment;
 use Maxim\Postsystem\Blog\Post;

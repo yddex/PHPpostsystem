@@ -1,6 +1,6 @@
 <?php
+namespace Maxim\Postsystem\UnitTests\RepositorIes\PostRepositories;
 
-namespace Maxim\Postsystem\tests\Repositories\PostRepositories;
 
 use Maxim\Postsystem\Blog\Post;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\PostNotFoundException;
