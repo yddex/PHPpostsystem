@@ -15,7 +15,9 @@ use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
-class POstCreateTest extends TestCase
+
+
+class PostCreateTest extends TestCase
 {
 
     /**
