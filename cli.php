@@ -15,16 +15,12 @@ use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
 use Maxim\Postsystem\UUID;
 
 
-$connection = require_once __DIR__ . "/sqllitepdo.php";
+$container = require_once __DIR__ . "/bootstrap.php";
+
 try {
 
-    // $userRepository = new SqliteUserRepository($connection);
-    // $postRepository = new SqlitePostRepository($connection);
-    // $commentRepository = new SqliteCommentRepository($connection, $userRepository, $postRepository);
-
-
-//    $createUserCommand = new CreateUserCommand($userRepository);
-//    $createUserCommand->handle(Arguments::fromArgv($argv));
+    $createUserCommand = $container->get(CreateUserCommand::class);
+    $createUserCommand->handle(Arguments::fromArgv($argv));
 
 
 } catch (AppException $e) {

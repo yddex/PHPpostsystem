@@ -39,9 +39,10 @@ class SqliteCommentRepository implements ICommentRepository
         ]);
     }
 
+    //Получение комментария из PDOStatement
     private function getCommentFromStatement(PDOStatement $statement) :Comment
     {
-        $result = $statement->fetch();
+        $result = $statement->fetch(PDO::FETCH_ASSOC);
         if($result === false)
         {
             throw new CommentNotFoundException("Comment not found");
@@ -54,6 +55,7 @@ class SqliteCommentRepository implements ICommentRepository
         return new Comment($uuid, $author, $post, $text);
 
     }
+     //Получение массива комментариев из PDOStatement
     private function getAllCommentsFromStatement(PDOStatement $statement) :array
     {
         $comments = [];
@@ -79,7 +81,7 @@ class SqliteCommentRepository implements ICommentRepository
     
 
     //Извлечение всех комментариев к посту
-    public function getAllByPost(Post $post): array
+    public function getByPost(Post $post): array
     {
         $statement = $this->connection->prepare("SELECT * FROM comments WHERE post_uuid LIKE :post_uuid");
         $statement->execute(["post_uuid" => (string)$post->getUuid()]);
@@ -93,9 +95,10 @@ class SqliteCommentRepository implements ICommentRepository
         $statement->execute(["uuid" => (string)$comment->getUuid()]);
     }
 
-    public function deleteAllByPost(Post $post) :void
-    {
-        $statement = $this->connection->prepare("DELETE FROM comments WHERE post_uuid LIKE :post_uuid");
-        $statement->execute(["post_uuid" => (string)$post->getUuid()]);
-    }
+    
+    // public function deleteAllByPost(Post $post) :void
+    // {
+    //     $statement = $this->connection->prepare("DELETE FROM comments WHERE post_uuid LIKE :post_uuid");
+    //     $statement->execute(["post_uuid" => (string)$post->getUuid()]);
+    // }
 }

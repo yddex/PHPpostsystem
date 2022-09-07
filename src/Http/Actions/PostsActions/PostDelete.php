@@ -18,10 +18,9 @@ class PostDelete implements IAction
     private IPostRepository $postRepository;
     private ICommentRepository $commentRepository;
 
-    public function __construct(IPostRepository $postRepository, ICommentRepository $commentRepository)
+    public function __construct(IPostRepository $postRepository)
     {
         $this->postRepository = $postRepository;
-        $this->commentRepository= $commentRepository;
     }
 
     public function handle(Request $request): Response
@@ -37,7 +36,6 @@ class PostDelete implements IAction
         }
 
         $this->postRepository->delete($post);
-        $this->commentRepository->deleteAllByPost($post);
 
         return new SuccessfulResponse([]);
     }

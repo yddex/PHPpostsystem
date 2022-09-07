@@ -20,18 +20,18 @@ use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
 
 
 require_once __DIR__ . "/vendor/autoload.php";
+$container = require_once __DIR__ . "/bootstrap.php";
 
-$pdo = require_once './sqllitepdo.php';
-//репозитории
-$userRepository = new SqliteUserRepository($pdo);
-$postRepository = new SqlitePostRepository($pdo, $userRepository);
-$commentRepository = new SqliteCommentRepository($pdo, $userRepository, $postRepository);
 
 $request = new Request($_GET, $_SERVER, file_get_contents("php://input"));
 try{
 
+    //Метод запроса
     $method = $request->method();
+
+    //Путь запроса
     $path = $request->path();
+
 }catch(HttpException $e){
     (new ErrorResponse($e->getMessage()))->send();
     return;
@@ -39,30 +39,31 @@ try{
 
 $routes = [
     "GET" => [
-        "/users/show" => new UserFindByLogin($userRepository),
-        "/posts/show" => new PostFindByUuid($postRepository),
-        "/comments/show" => new CommentFindByUuid($commentRepository),
+        "/users/show" => UserFindByLogin::class,
+        "/posts/show" => PostFindByUuid::class,
+        "/comments/show" => CommentFindByUuid::class,
     ],
 
     "POST" => [
-        "/users/create" => new UserCreate($userRepository),
-        "/posts/create" => new PostCreate($postRepository, $userRepository),
-        "/comments/create" => new CommentCreate($commentRepository, $userRepository, $postRepository)
+        "/users/create" => UserCreate::class,
+        "/posts/create" => PostCreate::class,
+        "/comments/create" => CommentCreate::class
     ],
 
     "DELETE" => [
-        "/posts/delete" => new PostDelete($postRepository, $commentRepository),
-        "/comments/delete" => new CommentDelete($commentRepository)
+        "/posts/delete" => PostDelete::class,
+        "/comments/delete" => CommentDelete::class
     ]
 ];
 
-
+//Проверка на наличие метода и пути в массиве возможных
 if(!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])){
     (new ErrorResponse("Not found"))->send();
     return;
 }
 
-$action = $routes[$method][$path];
+$actionClassName = $routes[$method][$path];
+$action = $container->get($actionClassName);
 
 try{
     $response = $action->handle($request);

@@ -213,7 +213,7 @@ class CommentCreateTest extends TestCase
                     throw new CommentNotFoundException("Not found");
                 }
 
-                public function getAllByPost(Post $post): array
+                public function getByPost(Post $post): array
                 {
                     throw new CommentNotFoundException("Not found");
                 }

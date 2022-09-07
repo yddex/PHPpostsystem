@@ -14,7 +14,8 @@
         "test": "phpunit tests --testdox --colors"
     },
     "require": {
-        "symfony/polyfill-uuid": "^1.26"
+        "symfony/polyfill-uuid": "^1.26",
+        "psr/container": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"

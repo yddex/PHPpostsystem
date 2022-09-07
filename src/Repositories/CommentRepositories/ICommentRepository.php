@@ -9,7 +9,6 @@ interface ICommentRepository
 {
     public function save(Comment $comment) :void;
     public function getByUUID(UUID $uuid) :Comment;
-    public function getAllByPost(Post $post) :array;
+    public function getByPost(Post $post) :array;
     public function delete(Comment $comment) :void;
-    public function deleteAllByPost(Post $post) :void;
 }
