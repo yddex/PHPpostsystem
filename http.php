@@ -5,6 +5,8 @@ use Maxim\Postsystem\Exceptions\Http\HttpException;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentCreate;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentDelete;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentFindByUuid;
+use Maxim\Postsystem\Http\Actions\LikeActions\LikeCreate;
+use Maxim\Postsystem\Http\Actions\LikeActions\LikeDelete;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostCreate;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostDelete;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostFindByUuid;
@@ -47,12 +49,14 @@ $routes = [
     "POST" => [
         "/users/create" => UserCreate::class,
         "/posts/create" => PostCreate::class,
-        "/comments/create" => CommentCreate::class
+        "/comments/create" => CommentCreate::class,
+        "/likes/create" => LikeCreate::class
     ],
 
     "DELETE" => [
         "/posts/delete" => PostDelete::class,
-        "/comments/delete" => CommentDelete::class
+        "/comments/delete" => CommentDelete::class,
+        "/likes/delete" => LikeDelete::class
     ]
 ];
 

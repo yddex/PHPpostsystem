@@ -6,14 +6,14 @@ use Maxim\Postsystem\UUID;
 class Like
 {
     private UUID $uuid;
-    private Post $post;
-    private User $author;
+    private UUID $postUuid;
+    private UUID $authorUuid;
 
-    public function __construct(UUID $uuid, Post $post, User $author)
+    public function __construct(UUID $uuid, UUID $postUuid, UUID $authorUuid)
     {
         $this->uuid = $uuid;
-        $this->post = $post;
-        $this->author = $author;
+        $this->postUuid = $postUuid;
+        $this->authorUuid = $authorUuid;
     }
 
     /**
@@ -26,23 +26,25 @@ class Like
         return $this->uuid;
     }
 
+
+
     /**
-     * Get the value of post
+     * Get the value of authorUuid
      *
-     * @return Post
+     * @return UUID
      */
-    public function getPost(): Post
+    public function getAuthorUuid(): UUID
     {
-        return $this->post;
+        return $this->authorUuid;
     }
 
     /**
-     * Get the value of author
+     * Get the value of postUuid
      *
-     * @return User
+     * @return UUID
      */
-    public function getAuthor(): User
+    public function getPostUuid(): UUID
     {
-        return $this->author;
+        return $this->postUuid;
     }
 }

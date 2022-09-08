@@ -3,6 +3,7 @@ namespace Maxim\Postsystem\Repositories\LikeRepositories;
 
 use Maxim\Postsystem\Blog\Like;
 use Maxim\Postsystem\Blog\Post;
+use Maxim\Postsystem\Exceptions\RepositoriesExceptions\LikeAlreadyExist;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\LikeNotFound;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
@@ -22,37 +23,58 @@ class SqliteLikeRepository implements ILikeRepository
         $this->postRepository = $postRepository;
     }
 
+    private function likeExist(Like $like) :bool
+    {
+        $statement = $this->connection->prepare("SELECT * FROM likes
+            WHERE post_uuid = :post_uuid AND author_uuid = :author_uuid");
+
+        $statement->execute([
+            "post_uuid" => (string)$like->getPostUuid(),
+            "author_uuid" => (string)$like->getAuthorUuid()
+        ]);
+
+        $result = $statement->fetch();
+        if($result === false){
+            return false;
+        }
+
+        return true;
+    }
+
     //Добавление лайка в БД
     public function save(Like $like): void
     {
+        //Проверяем, был ли поставлен уже лайк
+        if($this->likeExist($like)){
+            throw new LikeAlreadyExist("Like already exist.");
+        }
+
         $statement = $this->connection->prepare("INSERT INTO likes (uuid, post_uuid, author_uuid)
          VALUES (:uuid, :post_uuid, :author_uuid);");
 
         $statement->execute([
             "uuid" => (string)$like->getUuid(),
-            "post_uuid" => (string)$like->getPost()->getUuid(),
-            "author_uuid" => (string)$like->getAuthor()->getUuid()
+            "post_uuid" => (string)$like->getPostUuid(),
+            "author_uuid" => (string)$like->getAuthorUuid()
         ]);
     }
 
     //Извлечение лайков к посту
-    public function getByPost(Post $post): array
+    public function getByPost(UUID $postUuid): array
     {
         $likes = [];
         $statement = $this->connection->prepare("SELECT * FROM likes WHERE post_uuid = :post_uuid;");
-        $statement->execute(["post_uuid" => (string)$post->getUuid()]);
+        $statement->execute(["post_uuid" => (string)$postUuid]);
         
         $result = $statement->fetchAll(PDO::FETCH_ASSOC);
         foreach ($result as $like) {
             $uuid = new UUID($like["uuid"]);
             //Пост
             $postUuid = new UUID($like["post_uuid"]);
-            $post = $this->postRepository->getByUUID($postUuid);
             //Автор
             $authorUuid = new UUID(($like["author_uuid"]));
-            $author = $this->userRepository->getByUUID($authorUuid);
 
-            $likes[] = new Like($uuid, $post, $author);
+            $likes[] = new Like($uuid, $postUuid, $authorUuid);
         }
 
         return $likes;
@@ -72,12 +94,10 @@ class SqliteLikeRepository implements ILikeRepository
         $uuid = new UUID($result["uuid"]);
         //Пост
         $postUuid = new UUID($result["post_uuid"]);
-        $post = $this->postRepository->getByUUID($postUuid);
         //Автор
         $authorUuid = new UUID(($result["author_uuid"]));
-        $author = $this->userRepository->getByUUID($authorUuid);
 
-        return new Like($uuid, $post, $author);
+        return new Like($uuid, $postUuid, $authorUuid);
         
     }
 

@@ -9,6 +9,6 @@ interface ILikeRepository
 {
     public function save(Like $like) :void;
     public function getByUUID(UUID $uuid) :Like;
-    public function getByPost(Post $post) :array;
+    public function getByPost(UUID $post) :array;
     public function delete(UUID $uuid) :void;
 }

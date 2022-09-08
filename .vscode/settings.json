@@ -3,7 +3,7 @@
         {
             "previewLimit": 50,
             "driver": "SQLite",
-            "database": "${workspaceFolder:php_postsystem}/datebase.sqlite",
+            "database": "${workspaceFolder:php_postsystem}/blog.sqlite",
             "name": "postsystem"
         }
     ],

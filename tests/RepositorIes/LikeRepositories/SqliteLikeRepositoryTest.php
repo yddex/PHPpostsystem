@@ -29,32 +29,37 @@ class SqliteLikeRepositoryTest extends TestCase
         $userRepositoryStub = $this->createStub(IUserRepository::class);
         $postRepositoryStub = $this->createStub(IPostRepository::class);
         //Настройка стабов
+        $statementMock->method('fetch')->willReturn(false);
         $statementMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('execute')
-            ->with([
-                "uuid" => "fb40d053-026c-4e64-83fe-0d9882cd3464",
-                "post_uuid" => "5cb259d2-4ee3-4737-9be3-3703e8a88c55",
-                "author_uuid" => "03b08b64-3575-4479-baf4-a51c94785b3a"
-        ]);
+            ->withConsecutive(
+                [
+                   $this->equalTo(
+                    [
+                        "post_uuid" => "5cb259d2-4ee3-4737-9be3-3703e8a88c55",
+                        "author_uuid" => "03b08b64-3575-4479-baf4-a51c94785b3a"
+                    ])
+                ],
+                [
+                    $this->equalTo(
+                    [
+                        "uuid" => "fb40d053-026c-4e64-83fe-0d9882cd3464",
+                        "post_uuid" => "5cb259d2-4ee3-4737-9be3-3703e8a88c55",
+                        "author_uuid" => "03b08b64-3575-4479-baf4-a51c94785b3a"
+                    ])
+                ]
+            );
         $connectionStub->method('prepare')->willReturn($statementMock);
 
         //Создаем требуемые сущности
-        $author = new User(
-            new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"),
-            new Name("name", "surname"),
-            "login"
-        );
-        $post = new Post(
-            new UUID("5cb259d2-4ee3-4737-9be3-3703e8a88c55"),
-            $author,
-            "title",
-            "text"
-        );
+        $postUuid = new UUID("5cb259d2-4ee3-4737-9be3-3703e8a88c55");
+        $authorUuid = new UUID("03b08b64-3575-4479-baf4-a51c94785b3a");
+    
         $like = new Like(
             new UUID("fb40d053-026c-4e64-83fe-0d9882cd3464"),
-            $post,
-            $author
+            $postUuid,
+            $authorUuid
         );
         
         $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
@@ -83,25 +88,18 @@ class SqliteLikeRepositoryTest extends TestCase
         $connectionStub->method('prepare')->willReturn($statementMock);
 
         //Создаем требуемые сущности
-        $author = new User(
-            new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"),
-            new Name("name", "surname"),
-            "login"
-        );
-        $post = new Post(
-            new UUID("5cb259d2-4ee3-4737-9be3-3703e8a88c55"),
-            $author,
-            "title",
-            "text"
-        );
+        
+        $postUuid = new UUID("5cb259d2-4ee3-4737-9be3-3703e8a88c55");
+        $authorUuid =    new UUID("03b08b64-3575-4479-baf4-a51c94785b3a");
+    
         $like = new Like(
             new UUID("fb40d053-026c-4e64-83fe-0d9882cd3464"),
-            $post,
-            $author
+            $postUuid,
+            $authorUuid
         );
         
         $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
-        $likes = $likeRepository->getByPost($post);
+        $likes = $likeRepository->getByPost($postUuid);
 
         $this->assertInstanceOf(Like::class, $likes[0]);
         $this->assertSame("fb40d053-026c-4e64-83fe-0d9882cd3464", (string)$likes[0]->getUuid());
