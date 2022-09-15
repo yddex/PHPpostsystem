@@ -12,6 +12,7 @@ use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\PostRepositories\SqlitePostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
+use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
 use Maxim\Postsystem\UUID;
 use PHPUnit\Framework\TestCase;
 use PDO;
@@ -62,7 +63,7 @@ class SqliteLikeRepositoryTest extends TestCase
             $authorUuid
         );
         
-        $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
+        $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub, new DummyLogger());
         $likeRepository->save($like);
 
     }
@@ -98,7 +99,7 @@ class SqliteLikeRepositoryTest extends TestCase
             $authorUuid
         );
         
-        $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
+        $likeRepository = new SqliteLikeRepository($connectionStub, $userRepositoryStub, $postRepositoryStub, new DummyLogger());
         $likes = $likeRepository->getByPost($postUuid);
 
         $this->assertInstanceOf(Like::class, $likes[0]);

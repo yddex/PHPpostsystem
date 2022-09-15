@@ -10,16 +10,19 @@ use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
 use Maxim\Postsystem\UUID;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqlitePostRepository implements IPostRepository
 {
     private PDO $connection;
     private IUserRepository $userRepository;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection, IUserRepository $userRepository)
+    public function __construct(PDO $connection, IUserRepository $userRepository, LoggerInterface $logger)
     {
         $this->connection = $connection;
         $this->userRepository = $userRepository;
+        $this->logger = $logger;
     }
 
     //запись в таблицу
@@ -27,23 +30,25 @@ class SqlitePostRepository implements IPostRepository
     {
         $statement = $this->connection->prepare("INSERT INTO posts (uuid, author_uuid, title, text)
             VALUES (:uuid, :author_uuid, :title, :text);");
-        
+
         $statement->execute([
             "uuid" => (string)$post->getUuid(),
             "author_uuid" => (string)$post->getAuthor()->getUuid(),
             "title" => $post->getTitle(),
             "text" => $post->getText()
         ]);
+
+        $this->logger->info("Post create. UUID: " . (string)$post->getUuid());
     }
 
-    
-    private function getPostFromStatement(PDOStatement $statement) :Post
+
+    private function getPostFromStatement(PDOStatement $statement): Post
     {
         $result = $statement->fetch();
-        if($result === false){
+        if ($result === false) {
             throw new PostNotFoundException("Post not found");
         }
-   
+
         $uuid = new UUID($result["uuid"]);
         $author_uuid = new UUID($result["author_uuid"]);
         $author = $this->userRepository->getByUUID($author_uuid);
@@ -53,16 +58,12 @@ class SqlitePostRepository implements IPostRepository
         return new Post($uuid, $author, $title, $text);
     }
 
-    private function getAllPostsFromStatement(PDOStatement $statement) :array
+    private function getAllPostsFromStatement(PDOStatement $statement): array
     {
         $posts = [];
-        while($statement !== false){
-            try{
-                $posts[] = $this->getPostFromStatement($statement);
-            }catch(PostNotFoundException $exception){
+        while ($statement !== false) {
 
-                return $posts;
-            }
+            $posts[] = $this->getPostFromStatement($statement);
         }
         return $posts;
     }
@@ -70,7 +71,7 @@ class SqlitePostRepository implements IPostRepository
     //получение массива обьектов всех постов из таблицы
     public function getAll(): array
     {
-        
+
         $statement = $this->connection->prepare("SELECT * FROM posts");
         $statement->execute();
 
@@ -83,12 +84,13 @@ class SqlitePostRepository implements IPostRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM posts WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$uuid]);
-        try{
+        try {
             return $this->getPostFromStatement($statement);
-        }catch(PostNotFoundException $e){
-            throw new PostNotFoundException("Post not found. UUID: " . (string)$uuid);
+        } catch (PostNotFoundException $e) {
+            $message = "Post not found. UUID: " . (string)$uuid;
+            $this->logger->warning($message);
+            throw new PostNotFoundException($message);
         }
-
     }
 
     //Извлечение всех постов пользователя
@@ -101,9 +103,11 @@ class SqlitePostRepository implements IPostRepository
     }
 
     //удаление поста по UUID
-    public function delete(Post $post) :void
-    {   
+    public function delete(Post $post): void
+    {
         $statement = $this->connection->prepare("DELETE FROM posts WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$post->getUuid()]);
+        
+        $this->logger->info("Post deleted. UUID: " . (string)$post->getUuid());
     }
 }

@@ -10,18 +10,21 @@ use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqliteCommentRepository implements ICommentRepository
 {
     private PDO $connection;
     private IUserRepository $userRepository;
     private IPostRepository $postRepository;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection, IUserRepository $userRepository, IPostRepository $postRepository)
+    public function __construct(PDO $connection, IUserRepository $userRepository, IPostRepository $postRepository, LoggerInterface $logger)
     {
         $this->connection = $connection;
         $this->userRepository = $userRepository;
         $this->postRepository = $postRepository;
+        $this->logger = $logger;
     }
 
 
@@ -31,12 +34,16 @@ class SqliteCommentRepository implements ICommentRepository
         $statement = $this->connection->prepare("INSERT INTO comments (uuid, post_uuid, author_uuid, text)
             VALUES (:uuid, :post_uuid, :author_uuid, :text)");
 
+        $uuid = (string)$comment->getUuid();
+
         $statement->execute([
-            "uuid" => (string)$comment->getUuid(),
+            "uuid" => (string)$uuid,
             "post_uuid" => (string)$comment->getPost()->getUuid(),
             "author_uuid" => (string)$comment->getAuthor()->getUuid(),
             "text" => $comment->getText()
         ]);
+
+        $this->logger->info("New comment create. UUID: $uuid");
     }
 
     //Получение комментария из PDOStatement
@@ -76,7 +83,15 @@ class SqliteCommentRepository implements ICommentRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM comments WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$uuid]);
-        return $this->getCommentFromStatement($statement);
+        try{
+            return $this->getCommentFromStatement($statement);
+
+        }catch(CommentNotFoundException $e){
+            $message = "Comment not found. UUID:" . (string)$uuid;
+            $this->logger->warning($message);
+            throw new CommentNotFoundException($message);
+        }
+
     }
     
 
@@ -85,7 +100,14 @@ class SqliteCommentRepository implements ICommentRepository
     {
         $statement = $this->connection->prepare("SELECT * FROM comments WHERE post_uuid LIKE :post_uuid");
         $statement->execute(["post_uuid" => (string)$post->getUuid()]);
-        return $this->getAllCommentsFromStatement($statement);
+        try{
+            return $this->getAllCommentsFromStatement($statement);
+
+        }catch(CommentNotFoundException $e){
+            $message = "Comment not found by post. UUID:" . (string)$post->getUuid();
+            $this->logger->warning($message);
+            throw new CommentNotFoundException($message);
+        }
     }
 
     //удаление комментария из дб

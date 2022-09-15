@@ -13,6 +13,7 @@ use Maxim\Postsystem\Repositories\CommentRepositories\SqliteCommentRepository;
 use Maxim\Postsystem\Repositories\PostRepositories\SqlitePostRepository;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
+use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
 use Maxim\Postsystem\UUID;
 use PHPUnit\Framework\TestCase;
 use PDO;
@@ -43,7 +44,7 @@ class SqliteCommentRepositoryTest extends TestCase
         $post = new Post(new UUID("7de1b6b2-8204-42f0-bff7-5cd10138dffd"), $user, "title", "text");
         $comment = new Comment(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), $user, $post, "test_comment_text");
 
-        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
+        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub, new DummyLogger());
         $commentRepository->save($comment);
     }
 
@@ -64,7 +65,7 @@ class SqliteCommentRepositoryTest extends TestCase
         ]);
         $connectionStub->method('prepare')->willReturn($statementStub);
 
-        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
+        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub, new DummyLogger());
         $returnedComment = $commentRepository->getByUUID(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"));
 
         $this->assertSame("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa", (string)$returnedComment->getUuid());
@@ -85,7 +86,7 @@ class SqliteCommentRepositoryTest extends TestCase
         $this->expectException(CommentNotFoundException::class);
         $this->expectExceptionMessage("Comment not found");
     
-        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub);
+        $commentRepository = new SqliteCommentRepository($connectionStub, $userRepositoryStub, $postRepositoryStub, new DummyLogger());
         $commentRepository->getByUUID(new UUID("7de1b6b2-8204-42f0-bff7-5cd10138dffd"));
     }
 }

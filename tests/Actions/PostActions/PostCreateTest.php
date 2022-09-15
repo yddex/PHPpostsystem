@@ -8,12 +8,14 @@ use Maxim\Postsystem\Exceptions\RepositoriesExceptions\PostNotFoundException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostCreate;
 use Maxim\Postsystem\Http\Actions\UserActions\UserFindByLogin;
+use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
 use Maxim\Postsystem\Http\SuccessfulResponse;
 use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
+use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
 use Maxim\Postsystem\UUID;
 
 
@@ -34,12 +36,12 @@ class PostCreateTest extends TestCase
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
-
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
 
         //создаем действие
-        $action = new PostCreate($postRepository, $userRepository);
+        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
         //выполняем действие
         $response = $action->handle($request);
         //ожидаем успешный ответ
@@ -80,11 +82,12 @@ class PostCreateTest extends TestCase
 
          //создаем стаб репозитория и передаем автора поста
          $userRepository = $this->usersRepository([]);
+         $userIdentification = new JsonBodyUuidIdentification($userRepository);
  
          //стаб репозитория с постами
          $postRepository = $this->postsRepository();
 
-         $action = new PostCreate($postRepository, $userRepository);
+         $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
 
          $response = $action->handle($request);
 
@@ -108,12 +111,13 @@ class PostCreateTest extends TestCase
 
         //создаем стаб репозитория
         $userRepository = $this->usersRepository([]);
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
 
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
 
         //создаем действие
-        $action = new PostCreate($postRepository, $userRepository);
+        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
         //выполняем действие
         $response = $action->handle($request);
 
@@ -138,12 +142,13 @@ class PostCreateTest extends TestCase
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
 
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
-
+        
         //создаем действие
-        $action = new PostCreate($postRepository, $userRepository);
+        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger);
         //выполняем действие
         $response = $action->handle($request);
 

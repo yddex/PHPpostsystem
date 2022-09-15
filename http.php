@@ -18,12 +18,11 @@ use Maxim\Postsystem\Http\SuccessfulResponse;
 use Maxim\Postsystem\Repositories\CommentRepositories\SqliteCommentRepository;
 use Maxim\Postsystem\Repositories\PostRepositories\SqlitePostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
-
-
+use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . "/vendor/autoload.php";
 $container = require_once __DIR__ . "/bootstrap.php";
-
+$logger = $container->get(LoggerInterface::class);
 
 $request = new Request($_GET, $_SERVER, file_get_contents("php://input"));
 try{
@@ -35,6 +34,7 @@ try{
     $path = $request->path();
 
 }catch(HttpException $e){
+    $logger->warning($e->getMessage());
     (new ErrorResponse($e->getMessage()))->send();
     return;
 }
@@ -62,7 +62,9 @@ $routes = [
 
 //Проверка на наличие метода и пути в массиве возможных
 if(!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])){
-    (new ErrorResponse("Not found"))->send();
+    $message = "Route not found: $method $path";
+    $logger->notice($message);
+    (new ErrorResponse($message))->send();
     return;
 }
 
@@ -73,6 +75,7 @@ try{
     $response = $action->handle($request);
 
 }catch(AppException $e){
+    $logger->error($e->getMessage(), ['exception' => $e]);
     (new ErrorResponse($e->getMessage()))->send();
 }
 

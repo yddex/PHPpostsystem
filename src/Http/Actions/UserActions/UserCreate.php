@@ -13,14 +13,17 @@ use Maxim\Postsystem\Http\SuccessfulResponse;
 use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
+use Psr\Log\LoggerInterface;
 
 class UserCreate implements IAction
 {
     private IUserRepository $userRepository;
+    private LoggerInterface $logger;
 
-    public function __construct(IUserRepository $userRepository)
+    public function __construct(IUserRepository $userRepository, LoggerInterface $logger)
     {
         $this->userRepository = $userRepository;
+        $this->logger = $logger;
     }
 
     public function handle(Request $request): Response
@@ -36,6 +39,7 @@ class UserCreate implements IAction
             $user = new User($uuid, new Name($name, $surname), $login);
 
         }catch(HttpException | InvalidArgumentException $e){
+            $this->logger->warning("User create action. " . $e->getMessage());
             return new ErrorResponse($e->getMessage());
         }
 
@@ -44,6 +48,7 @@ class UserCreate implements IAction
             $this->userRepository->save($user);
 
         }catch(UserLoginTakenException $e){
+            $this->logger->warning("User create action. " . $e->getMessage());
             return new ErrorResponse($e->getMessage());
         }
 

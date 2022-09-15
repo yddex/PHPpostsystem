@@ -19,6 +19,7 @@ use Maxim\Postsystem\UUID;
 use Maxim\Postsystem\Blog\Comment;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\CommentNotFoundException;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentCreate;
+use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
 
 class CommentCreateTest extends TestCase
 {
@@ -44,8 +45,10 @@ class CommentCreateTest extends TestCase
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
+
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userRepository, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(SuccessfulResponse::class, $response);
@@ -84,11 +87,13 @@ class CommentCreateTest extends TestCase
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
         $postRepository = $this->postsRepository([]);
+
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userRepository, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -112,8 +117,10 @@ class CommentCreateTest extends TestCase
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
+
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userRepository, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -141,8 +148,9 @@ class CommentCreateTest extends TestCase
                 "text"
         )]);
         $userRepository = $this->usersRepository([]);
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userRepository, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -172,8 +180,9 @@ class CommentCreateTest extends TestCase
         $userRepository = $this->usersRepository([
             new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
         ]);
+        $userIdentification = new JsonBodyUuidIdentification($userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userRepository, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);

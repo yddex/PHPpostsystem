@@ -9,18 +9,21 @@ use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
 use PDO;
+use Psr\Log\LoggerInterface;
 
 class SqliteLikeRepository implements ILikeRepository
 {
     private PDO $connection;
     private IUserRepository $userRepository;
     private IPostRepository $postRepository;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection ,IUserRepository $userRepository, IPostRepository $postRepository)
+    public function __construct(PDO $connection ,IUserRepository $userRepository, IPostRepository $postRepository, LoggerInterface $logger)
     {
         $this->connection = $connection;
         $this->userRepository = $userRepository;
         $this->postRepository = $postRepository;
+        $this->logger = $logger;
     }
 
     private function likeExist(Like $like) :bool
@@ -88,7 +91,9 @@ class SqliteLikeRepository implements ILikeRepository
 
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if($result === false){
-            throw new LikeNotFound("Like not found by uuid: " . $uuid);
+            $message = "Like not found by uuid: " . $uuid;
+            $this->logger->warning($message);
+            throw new LikeNotFound($message);
         }
 
         $uuid = new UUID($result["uuid"]);

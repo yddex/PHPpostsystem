@@ -8,14 +8,17 @@ use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\UUID;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 
 class SqliteUserRepository implements IUserRepository
 {
     private PDO $connection;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection)
+    public function __construct(PDO $connection, LoggerInterface $logger)
     {
         $this->connection = $connection;
+        $this->logger = $logger;
     }
 
 
@@ -55,7 +58,9 @@ class SqliteUserRepository implements IUserRepository
             return $this->getUserStatement($statement);
 
         }catch(UserNotFoundException){
-            throw new UserNotFoundException("User not found by uuid: " . $uuid);
+            $message = "User not found by uuid: " . $uuid;
+            $this->logger->warning($message);
+            throw new UserNotFoundException($message);
         }
     }
 
@@ -69,7 +74,9 @@ class SqliteUserRepository implements IUserRepository
             return $this->getUserStatement($statement);
 
         }catch(UserNotFoundException){
-            throw new UserNotFoundException("User not found by login: " . $login);
+            $message = "User not found by login: " . $login;
+            $this->logger->warning($message);
+            throw new UserNotFoundException($message);
         }  
     }
 
@@ -90,6 +97,8 @@ class SqliteUserRepository implements IUserRepository
             "surname" => $name->getSurname(),
             "login" => $user->getLogin()
         ]);
+
+        $this->logger->info("Created new user. UUID: " . (string)$user->getUuid() );
     }
 
 }

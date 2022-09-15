@@ -10,6 +10,7 @@ use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\Repositories\PostRepositories\SqlitePostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\SqliteUserRepository;
+use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
 use Maxim\Postsystem\UUID;
 use PHPUnit\Framework\TestCase;
 use PDO;
@@ -38,7 +39,7 @@ class SqlitePostRepositoryTest extends TestCase
         $user = new User(new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"), new Name("Name", "Surname"), "login");
         $post = new Post(new UUID("fb40d053-026c-4e64-83fe-0d9882cd3464"), $user, "test_title", "test_text");
 
-        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub);
+        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub, new DummyLogger());
         $postRepository->save($post);
     }
 
@@ -60,7 +61,7 @@ class SqlitePostRepositoryTest extends TestCase
         $userRepositoryStub->method('getByUUID')->willReturn($user);
 
 
-        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub);
+        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub, new DummyLogger());
         $returnedPost = $postRepository->getByUUID(new UUID("fb40d053-026c-4e64-83fe-0d9882cd3464"));
         $this->assertSame("fb40d053-026c-4e64-83fe-0d9882cd3464", (string)$returnedPost->getUuid());
     }
@@ -77,7 +78,7 @@ class SqlitePostRepositoryTest extends TestCase
         $this->expectException(PostNotFoundException::class);
         $this->expectExceptionMessage("Post not found. UUID: 5cb259d2-4ee3-4737-9be3-3703e8a88c55");
 
-        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub);
+        $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub, new DummyLogger());
         $postRepository->getByUUID(new UUID("5cb259d2-4ee3-4737-9be3-3703e8a88c55"));
     }
 
