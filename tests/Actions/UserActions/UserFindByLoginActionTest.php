@@ -72,7 +72,7 @@ class UserFindByLoginActionTest extends TestCase
         $request = new Request(["login" => "bill"], [], "");
 
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "name"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "name"), "bill", "password")
         ]);
 
         $action = new UserFindByLogin($userRepository);

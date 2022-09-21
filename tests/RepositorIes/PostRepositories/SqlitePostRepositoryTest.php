@@ -35,8 +35,9 @@ class SqlitePostRepositoryTest extends TestCase
             ]);
 
         $connectionStub->method('prepare')->willReturn($statementMock);
-
-        $user = new User(new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"), new Name("Name", "Surname"), "login");
+         
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
+        $user = new User(new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"), new Name("Name", "Surname"), "login", $password);
         $post = new Post(new UUID("fb40d053-026c-4e64-83fe-0d9882cd3464"), $user, "test_title", "test_text");
 
         $postRepository = new SqlitePostRepository($connectionStub, $userRepositoryStub, new DummyLogger());
@@ -57,7 +58,8 @@ class SqlitePostRepositoryTest extends TestCase
         ]);
         $connectionStub->method('prepare')->willReturn($statementStub);
 
-        $user = new User(new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"), new Name("Name", "Surname"), "login");
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
+        $user = new User(new UUID("03b08b64-3575-4479-baf4-a51c94785b3a"), new Name("Name", "Surname"), "login", $password);
         $userRepositoryStub->method('getByUUID')->willReturn($user);
 
 

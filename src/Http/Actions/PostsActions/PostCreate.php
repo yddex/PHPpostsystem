@@ -7,6 +7,7 @@ use Maxim\Postsystem\Exceptions\Http\AuthException;
 use Maxim\Postsystem\Exceptions\Http\HttpException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\IAction;
+use Maxim\Postsystem\Http\Auth\IAuthentication;
 use Maxim\Postsystem\Http\Auth\IdentificationInterface;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
@@ -21,13 +22,13 @@ use Psr\Log\LoggerInterface;
 class PostCreate implements IAction
 {
     private IPostRepository $postRepository;
-    private IdentificationInterface $userIdentification;
+    private IAuthentication $userAuthentication;
     private LoggerInterface $logger;
 
-    public function __construct(IPostRepository $postRepository, IdentificationInterface $userIdentification, LoggerInterface $logger)
+    public function __construct(IPostRepository $postRepository, IAuthentication $userAuthentication, LoggerInterface $logger)
     {
         $this->postRepository = $postRepository;
-        $this->userIdentification = $userIdentification;
+        $this->userAuthentication = $userAuthentication;
         $this->logger = $logger;
     }
 
@@ -35,7 +36,7 @@ class PostCreate implements IAction
     {
         try{
             //идентифицируем пользователя
-            $author = $this->userIdentification->user($request);
+            $author = $this->userAuthentication->user($request);
 
              //создаем пост
             $post = new Post(

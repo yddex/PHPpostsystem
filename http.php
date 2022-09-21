@@ -74,7 +74,7 @@ $action = $container->get($actionClassName);
 try{
     $response = $action->handle($request);
 
-}catch(AppException $e){
+}catch(Throwable $e){
     $logger->error($e->getMessage(), ['exception' => $e]);
     (new ErrorResponse($e->getMessage()))->send();
 }

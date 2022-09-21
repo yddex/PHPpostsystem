@@ -33,10 +33,11 @@ class UserCreate implements IAction
             $name = $request->jsonBodyField("name");
             $surname = $request->jsonBodyField("surname");
             $login =  $request->jsonBodyField("login");
-            $uuid = UUID::random();
+            $password = $request->jsonBodyField("password");
+            
 
             //создаем пользователя
-            $user = new User($uuid, new Name($name, $surname), $login);
+            $user = User::createFrom(new Name($name, $surname), $login, $password);
 
         }catch(HttpException | InvalidArgumentException $e){
             $this->logger->warning("User create action. " . $e->getMessage());

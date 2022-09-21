@@ -6,7 +6,14 @@ $pdo->exec("CREATE TABLE users (
     uuid VARCHAR(255) PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,
     surname VARCHAR(255) NOT NULL,
-    login VARCHAR(255) NOT NULL UNIQUE
+    login VARCHAR(255) NOT NULL UNIQUE,
+    password TEXT NOT NULL 
+);");
+
+$pdo->exec("CREATE TABLE tokens (
+    token TEXT NOT NULL CONSTRAINT token_primary_key PRIMARY KEY,
+    user_uuid VARCHAR(255) NOT NULL,
+    expires_on TEXT NOT NULL
 );");
 
 $pdo->exec("CREATE TABLE posts (

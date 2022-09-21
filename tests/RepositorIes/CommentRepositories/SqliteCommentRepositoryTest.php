@@ -40,7 +40,8 @@ class SqliteCommentRepositoryTest extends TestCase
             ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
 
-        $user = new User(new UUID("f832afbe-5d70-418d-9f60-23eec4112619"), new Name("name", "name"), "login");
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
+        $user = new User(new UUID("f832afbe-5d70-418d-9f60-23eec4112619"), new Name("name", "name"), "login", $password);
         $post = new Post(new UUID("7de1b6b2-8204-42f0-bff7-5cd10138dffd"), $user, "title", "text");
         $comment = new Comment(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), $user, $post, "test_comment_text");
 

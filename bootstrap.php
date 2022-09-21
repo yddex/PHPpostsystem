@@ -2,8 +2,10 @@
 
 use Dotenv\Dotenv;
 use Maxim\Postsystem\Container\DIContainer;
+use Maxim\Postsystem\Http\Auth\IAuthentication;
 use Maxim\Postsystem\Http\Auth\IdentificationInterface;
 use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
+use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
 use Maxim\Postsystem\Repositories\CommentRepositories\ICommentRepository;
 use Maxim\Postsystem\Repositories\CommentRepositories\SqliteCommentRepository;
 use Maxim\Postsystem\Repositories\LikeRepositories\ILikeRepository;
@@ -49,6 +51,6 @@ $container->bind(ILikeRepository::class, SqliteLikeRepository::class);
 
 $container->bind(LoggerInterface::class, $logger);
 
-$container->bind(IdentificationInterface::class, JsonBodyUuidIdentification::class);
+$container->bind(IAuthentication::class, PasswordAuthentication::class);
 
 return $container;

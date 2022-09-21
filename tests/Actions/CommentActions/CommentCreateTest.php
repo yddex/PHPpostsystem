@@ -20,6 +20,7 @@ use Maxim\Postsystem\Blog\Comment;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\CommentNotFoundException;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentCreate;
 use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
+use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
 
 class CommentCreateTest extends TestCase
 {
@@ -32,21 +33,23 @@ class CommentCreateTest extends TestCase
     //Проверяем, что будет возвращен успешный ответ
     public function testItReturnSuccessfulResponse() :void
     {
-        $request = new Request([], [], '{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa", "post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87", "text":"text"}');
+        $request = new Request([], [], '{"login":"bill","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87", "text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
+
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $postRepository = $this->postsRepository([
                 new Post(
                     new UUID("351739ab-fc33-49ae-a62d-b606b7038c87"),
-                    new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill"),
+                    new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password),
                     "title",
                     "text"
                 )]);
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
         ]);
 
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
         //создаем действие
         $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
@@ -83,22 +86,23 @@ class CommentCreateTest extends TestCase
     //Проверяем, что будет возвращен ответ с ошибкой если не был передан какойлибо аргумент
     public function testItReturnErrorResponseIfTakeNotFullData() :void
     {
-        $request = new Request([], [], '{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa", "text":"text"}');
+        $request = new Request([], [], '{"login":"bill", "text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
         $postRepository = $this->postsRepository([]);
 
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
         ]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
         //создаем действие
         $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
 
-        $this->expectOutputString('{"success":false,"reason":"No such field: post_uuid"}');
+        $this->expectOutputString('{"success":false,"reason":"No such field: password"}');
 
         $response->send();
     }
@@ -110,15 +114,17 @@ class CommentCreateTest extends TestCase
     //Проверяем, что будет возвращен ответ с ошибкой если пост не был найден
     public function testItReturnErrorResponseIfPostNotFound() :void
     {
-        $request = new Request([], [], '{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
+        $request = new Request([], [], '{"login":"bill","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
         $postRepository = $this->postsRepository([]);
+
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
         ]);
 
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
         //создаем действие
         $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
@@ -137,69 +143,32 @@ class CommentCreateTest extends TestCase
     //Проверяем, что будет возвращен ответ с ошибкой если пользователь не был найден
     public function testItReturnErrorResponseIfAuthorNotFound() :void
     {
-        $request = new Request([], [], '{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
+        $request = new Request([], [], '{"login":"bill2","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
+
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $postRepository = $this->postsRepository([
             new Post(
                 new UUID("351739ab-fc33-49ae-a62d-b606b7038c87"),
-                new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill"),
+                new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password),
                 "title",
                 "text"
         )]);
         $userRepository = $this->usersRepository([]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
         //создаем действие
         $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
 
-        $this->expectOutputString('{"success":false,"reason":"User not found by uuid: 2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"}');
+        $this->expectOutputString('{"success":false,"reason":"Not found"}');
 
         $response->send();
     }
 
-            /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    //Проверяем, что будет возвращен ответ с ошибкой если uuid не верного формата
-    public function testItReturnErrorResponseIfMalformedUuid() :void
-    {
-        $request = new Request([], [], '{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
-        //создаем стабы репозиториев
-        $commentRepository = $this->commentsRepository();
-        $postRepository = $this->postsRepository([
-            new Post(
-                new UUID("351739ab-fc33-49ae-a62d-b606b7038c87"),
-                new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill"),
-                "title",
-                "text"
-        )]);
-        $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
-        ]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
-        //создаем действие
-        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
-        $response = $action->handle($request);
-
-        $this->assertInstanceOf(ErrorResponse::class, $response);
-
-        $this->expectOutputString('{"success":false,"reason":"Malformed UUID: 2a5f9ba6-b0c2-4143-9ca0"}');
-
-        $response->send();
-    }
-
-
-
-
-
-
-
-
-
+   
 
 
 

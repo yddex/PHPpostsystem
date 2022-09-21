@@ -45,7 +45,9 @@ class SqliteUserRepository implements IUserRepository
 
         $uuid = new UUID($result["uuid"]);
         $name = new Name($result["name"], $result["surname"]);
-        return new User($uuid, $name, $result["login"]);
+        $password = $result["password"];
+        $login = $result["login"];
+        return new User($uuid, $name, $login, $password);
     }
 
     //поиск по UUID
@@ -87,15 +89,16 @@ class SqliteUserRepository implements IUserRepository
             throw new UserLoginTakenException("This login is already taken: " . $user->getLogin());
         }
 
-        $statement = $this->connection->prepare("INSERT INTO users (uuid, name, surname, login)
-        VALUES (:uuid, :name, :surname, :login);");
+        $statement = $this->connection->prepare("INSERT INTO users (uuid, name, surname, login, password)
+        VALUES (:uuid, :name, :surname, :login, :password);");
         $name = $user->getName();
 
         $statement->execute([
             "uuid" => (string)$user->getUuid(),
             "name" => $name->getName(),
             "surname" => $name->getSurname(),
-            "login" => $user->getLogin()
+            "login" => $user->getLogin(),
+            "password" => $user->getHashPassword()
         ]);
 
         $this->logger->info("Created new user. UUID: " . (string)$user->getUuid() );

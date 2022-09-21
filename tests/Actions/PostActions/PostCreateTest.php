@@ -9,6 +9,7 @@ use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostCreate;
 use Maxim\Postsystem\Http\Actions\UserActions\UserFindByLogin;
 use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
+use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
 use Maxim\Postsystem\Http\SuccessfulResponse;
@@ -30,13 +31,14 @@ class PostCreateTest extends TestCase
     public function testItReturnSuccessfulResponse():void
     {
         //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa","title":"title","text":"text"}');
+        $request = new Request([],[],'{"login":"bill","password":"password","title":"title","text":"text"}');
 
         //создаем стаб репозитория и передаем автора поста
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
         ]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
 
@@ -74,15 +76,18 @@ class PostCreateTest extends TestCase
      * @preserveGlobalState disabled
      */
     //Проверяем, что будет возвращен ответ с ошибкой
-    //если uuid автора неверного формата
-    public function testItReturnErrorResponseIfMalformedAuthorUuid() :void
+    //если пароль автора неверный
+    public function testItReturnErrorResponseIfPasswordNotVerifed() :void
     {
          //создаем запрос, и передаем в него данные для создания поста с неверным uuid автора
-         $request = new Request([],[],'{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0","title":"title","text":"text"}');
+         $request = new Request([],[],'{"login":"bill","password":"password2","title":"title","text":"text"}');
 
+         $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
          //создаем стаб репозитория и передаем автора поста
-         $userRepository = $this->usersRepository([]);
-         $userIdentification = new JsonBodyUuidIdentification($userRepository);
+         $userRepository = $this->usersRepository([
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+        ]);
+         $userIdentification = new PasswordAuthentication($userRepository);
  
          //стаб репозитория с постами
          $postRepository = $this->postsRepository();
@@ -93,7 +98,7 @@ class PostCreateTest extends TestCase
 
          $this->assertInstanceOf(ErrorResponse::class, $response);
 
-         $this->expectOutputString('{"success":false,"reason":"Malformed UUID: 2a5f9ba6-b0c2-4143-9ca0"}');
+         $this->expectOutputString('{"success":false,"reason":"Wrong password!"}');
 
          $response->send();
     }
@@ -102,16 +107,16 @@ class PostCreateTest extends TestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    //Проверяем,что будет возвращен ответ с ошибкой, если пользователь с переданным uuid
+    //Проверяем,что будет возвращен ответ с ошибкой, если пользователь с переданным login
     //не будет найден
-    public function testItReturnErrorResponseIfUserNotFoundByUuid() :void
+    public function testItReturnErrorResponseIfUserNotFoundByLogin() :void
     {
         //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa","title":"title","text":"text"}');
+        $request = new Request([],[],'{"login":"bill2","password":"password","title":"title","text":"text"}');
 
         //создаем стаб репозитория
         $userRepository = $this->usersRepository([]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
 
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
@@ -122,7 +127,7 @@ class PostCreateTest extends TestCase
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"User not found by uuid:2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"}');
+        $this->expectOutputString('{"success":false,"reason":"Not found"}');
 
         $response->send();
     }
@@ -136,13 +141,14 @@ class PostCreateTest extends TestCase
     public function testItReturnErrorResponseIfSendDataNotFull() :void
     {
         //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"author_uuid":"2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa","text":"text"}');
+        $request = new Request([],[],'{"login":"bill","password":"password","text":"text"}');
 
         //создаем стаб репозитория
+        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill")
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
         ]);
-        $userIdentification = new JsonBodyUuidIdentification($userRepository);
+        $userIdentification = new PasswordAuthentication($userRepository);
 
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();

@@ -9,7 +9,7 @@ use Maxim\Postsystem\Exceptions\Http\HttpException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 
-class JsonBodyLoginIdentification implements IdentificationInterface
+class JsonBodyLoginIdentification implements IAuthentication
 {
     private IUserRepository $userRepository;
 
