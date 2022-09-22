@@ -6,9 +6,10 @@ use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\Exceptions\Http\AuthException;
 use Maxim\Postsystem\Exceptions\Http\HttpException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
+use Maxim\Postsystem\Http\Auth\Interfaces\IPasswordAuthentication;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 
-class PasswordAuthentication implements IAuthentication
+class PasswordAuthentication implements IPasswordAuthentication
 {
     private IUserRepository $userRepository;
 
@@ -23,6 +24,7 @@ class PasswordAuthentication implements IAuthentication
         try{
             $login = $request->jsonBodyField("login");
             $password = $request->jsonBodyField("password");
+            
             $user = $this->userRepository->getByLogin($login);
 
         }catch(HttpException | UserNotFoundException $e){

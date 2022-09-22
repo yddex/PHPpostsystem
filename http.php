@@ -2,6 +2,8 @@
 
 use Maxim\Postsystem\Exceptions\AppException;
 use Maxim\Postsystem\Exceptions\Http\HttpException;
+use Maxim\Postsystem\Http\Actions\Auth\LogIn;
+use Maxim\Postsystem\Http\Actions\Auth\Logout;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentCreate;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentDelete;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentFindByUuid;
@@ -25,6 +27,7 @@ $container = require_once __DIR__ . "/bootstrap.php";
 $logger = $container->get(LoggerInterface::class);
 
 $request = new Request($_GET, $_SERVER, file_get_contents("php://input"));
+
 try{
 
     //Метод запроса
@@ -47,6 +50,8 @@ $routes = [
     ],
 
     "POST" => [
+        "/login" => LogIn::class,
+        "/logout" => Logout::class,
         "/users/create" => UserCreate::class,
         "/posts/create" => PostCreate::class,
         "/comments/create" => CommentCreate::class,

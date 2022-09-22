@@ -49,9 +49,10 @@ class UserCreate implements IAction
             $this->userRepository->save($user);
 
         }catch(UserLoginTakenException $e){
-            $this->logger->warning("User create action. " . $e->getMessage());
+            $this->logger->warning("USER_CREATE_ACTION. " . $e->getMessage());
             return new ErrorResponse($e->getMessage());
         }
+        $this->logger->info("USER CREATED. UUID: " . $user->getUuid());
 
         return new SuccessfulResponse([
             "uuid" => (string)$user->getUuid()

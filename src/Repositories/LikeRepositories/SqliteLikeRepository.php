@@ -5,6 +5,7 @@ use Maxim\Postsystem\Blog\Like;
 use Maxim\Postsystem\Blog\Post;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\LikeAlreadyExist;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\LikeNotFound;
+use Maxim\Postsystem\Exceptions\RepositoriesExceptions\LikeNotFoundException;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
@@ -16,14 +17,13 @@ class SqliteLikeRepository implements ILikeRepository
     private PDO $connection;
     private IUserRepository $userRepository;
     private IPostRepository $postRepository;
-    private LoggerInterface $logger;
+    
 
-    public function __construct(PDO $connection ,IUserRepository $userRepository, IPostRepository $postRepository, LoggerInterface $logger)
+    public function __construct(PDO $connection ,IUserRepository $userRepository, IPostRepository $postRepository)
     {
         $this->connection = $connection;
         $this->userRepository = $userRepository;
         $this->postRepository = $postRepository;
-        $this->logger = $logger;
     }
 
     private function likeExist(Like $like) :bool
@@ -92,8 +92,7 @@ class SqliteLikeRepository implements ILikeRepository
         $result = $statement->fetch(PDO::FETCH_ASSOC);
         if($result === false){
             $message = "Like not found by uuid: " . $uuid;
-            $this->logger->warning($message);
-            throw new LikeNotFound($message);
+            throw new LikeNotFoundException($message);
         }
 
         $uuid = new UUID($result["uuid"]);

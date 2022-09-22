@@ -6,44 +6,42 @@ use Maxim\Postsystem\Blog\Comment;
 use Maxim\Postsystem\Exceptions\Http\AuthException;
 use Maxim\Postsystem\Exceptions\Http\HttpException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\PostNotFoundException;
-use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\IAction;
-use Maxim\Postsystem\Http\Auth\IAuthentication;
-use Maxim\Postsystem\Http\Auth\IdentificationInterface;
+use Maxim\Postsystem\Http\Auth\Interfaces\ITokenAuthentication;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
 use Maxim\Postsystem\Http\Response;
 use Maxim\Postsystem\Http\SuccessfulResponse;
 use Maxim\Postsystem\Repositories\CommentRepositories\ICommentRepository;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
-use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
 use Psr\Log\LoggerInterface;
 
 class CommentCreate implements IAction
 {
     private ICommentRepository $commentRepository;
-    private IAuthentication $userAuthentication;
+    private ITokenAuthentication $userAuthentication;
     private IPostRepository $postRepository;
     private LoggerInterface $logger;
 
     public function __construct(
         ICommentRepository $commentRepository,
-        IAuthentication $userAuthentication,
+        ITokenAuthentication $userAuthentication,
         IPostRepository $postRepository,
-
+        LoggerInterface $logger
     )
     {
         $this->commentRepository = $commentRepository;
         $this->userAuthentication = $userAuthentication;
         $this->postRepository = $postRepository;
+        $this->logger = $logger;
   
     }
 
     public function handle(Request $request): Response
     {
         try{
-            //Извлекаем uuid автора из запроса и ищем пользователя в репозитории
+            //Аутентификация пользователя по токену
             $author = $this->userAuthentication->user($request);
 
             //Извлекаем uuid поста из запроса и ищем пост в репозитории
@@ -58,12 +56,13 @@ class CommentCreate implements IAction
 
         }catch(HttpException | InvalidArgumentException | AuthException | PostNotFoundException $e){
 
+            $this->logger->warning("COMMENT CREATE ACTION. " . $e->getMessage());
             return new ErrorResponse($e->getMessage());
         }
 
         //Сохраняем комментарий в репозиторий
         $this->commentRepository->save($comment);
-
+        $this->logger->info("COMMENT CREATED. UUID: " . (string)$comment->getUuid());
         return new SuccessfulResponse([
             "uuid" => (string)$comment->getUuid()
         ]);

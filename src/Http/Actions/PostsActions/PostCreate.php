@@ -5,27 +5,23 @@ use InvalidArgumentException;
 use Maxim\Postsystem\Blog\Post;
 use Maxim\Postsystem\Exceptions\Http\AuthException;
 use Maxim\Postsystem\Exceptions\Http\HttpException;
-use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\IAction;
-use Maxim\Postsystem\Http\Auth\IAuthentication;
-use Maxim\Postsystem\Http\Auth\IdentificationInterface;
+use Maxim\Postsystem\Http\Auth\Interfaces\ITokenAuthentication;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
 use Maxim\Postsystem\Http\Response;
 use Maxim\Postsystem\Http\SuccessfulResponse;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
-use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UUID;
-use PHPUnit\Framework\Warning;
 use Psr\Log\LoggerInterface;
 
 class PostCreate implements IAction
 {
     private IPostRepository $postRepository;
-    private IAuthentication $userAuthentication;
+    private ITokenAuthentication $userAuthentication;
     private LoggerInterface $logger;
 
-    public function __construct(IPostRepository $postRepository, IAuthentication $userAuthentication, LoggerInterface $logger)
+    public function __construct(IPostRepository $postRepository, ITokenAuthentication $userAuthentication, LoggerInterface $logger)
     {
         $this->postRepository = $postRepository;
         $this->userAuthentication = $userAuthentication;
@@ -35,7 +31,7 @@ class PostCreate implements IAction
     public function handle(Request $request): Response
     {
         try{
-            //идентифицируем пользователя
+            //аутентифицируем по токену пользователя
             $author = $this->userAuthentication->user($request);
 
              //создаем пост
@@ -47,13 +43,13 @@ class PostCreate implements IAction
             );
 
         }catch(HttpException | InvalidArgumentException | AuthException $e){
-            $this->logger->warning("Post create action. " . $e->getMessage());
+            $this->logger->warning("POST CREATE ACTION. " . $e->getMessage());
             return new ErrorResponse($e->getMessage());
         }
 
         //Сохраняем в репозиторий
         $this->postRepository->save($post);
-
+        $this->logger->info("POST CREATED. UUID: " . $post->getUuid());
         return new SuccessfulResponse([
             "uuid" => (string)$post->getUuid()
         ]);

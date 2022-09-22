@@ -2,10 +2,15 @@
 
 use Dotenv\Dotenv;
 use Maxim\Postsystem\Container\DIContainer;
+use Maxim\Postsystem\Http\Auth\BearerTokenAuthentication;
 use Maxim\Postsystem\Http\Auth\IAuthentication;
 use Maxim\Postsystem\Http\Auth\IdentificationInterface;
+use Maxim\Postsystem\Http\Auth\Interfaces\IPasswordAuthentication;
+use Maxim\Postsystem\Http\Auth\Interfaces\ITokenAuthentication;
 use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
 use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
+use Maxim\Postsystem\Repositories\AuthTokenRepositories\IAuthTokenRepository;
+use Maxim\Postsystem\Repositories\AuthTokenRepositories\SqliteAuthTokenRepository;
 use Maxim\Postsystem\Repositories\CommentRepositories\ICommentRepository;
 use Maxim\Postsystem\Repositories\CommentRepositories\SqliteCommentRepository;
 use Maxim\Postsystem\Repositories\LikeRepositories\ILikeRepository;
@@ -37,20 +42,20 @@ if($_SERVER["LOG_TO_CONSOLE"]){
 
 $container->bind(PDO::class,new PDO("sqlite:" . __DIR__ . "/" . $_SERVER['SQLITE_DB_PATH']));
 
-//класс репозитория пользователей
+//Репозитории
 $container->bind(IUserRepository::class, SqliteUserRepository::class);
-
-//класс репозитория постов
+$container->bind(IAuthTokenRepository::class, SqliteAuthTokenRepository::class);
 $container->bind(IPostRepository::class, SqlitePostRepository::class);
-
-//класс репозитория комментариев
 $container->bind(ICommentRepository::class, SqliteCommentRepository::class);
-
-//класс репозитория лайков
 $container->bind(ILikeRepository::class, SqliteLikeRepository::class);
 
+//логгер
 $container->bind(LoggerInterface::class, $logger);
 
-$container->bind(IAuthentication::class, PasswordAuthentication::class);
+//аутентификация
+$container->bind(IPasswordAuthentication::class, PasswordAuthentication::class);
+$container->bind(ITokenAuthentication::class, BearerTokenAuthentication::class);
+
+
 
 return $container;

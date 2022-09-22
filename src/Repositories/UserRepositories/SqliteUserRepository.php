@@ -13,12 +13,11 @@ use Psr\Log\LoggerInterface;
 class SqliteUserRepository implements IUserRepository
 {
     private PDO $connection;
-    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection, LoggerInterface $logger)
+
+    public function __construct(PDO $connection)
     {
         $this->connection = $connection;
-        $this->logger = $logger;
     }
 
 
@@ -61,7 +60,6 @@ class SqliteUserRepository implements IUserRepository
 
         }catch(UserNotFoundException){
             $message = "User not found by uuid: " . $uuid;
-            $this->logger->warning($message);
             throw new UserNotFoundException($message);
         }
     }
@@ -77,7 +75,6 @@ class SqliteUserRepository implements IUserRepository
 
         }catch(UserNotFoundException){
             $message = "User not found by login: " . $login;
-            $this->logger->warning($message);
             throw new UserNotFoundException($message);
         }  
     }
@@ -101,7 +98,6 @@ class SqliteUserRepository implements IUserRepository
             "password" => $user->getHashPassword()
         ]);
 
-        $this->logger->info("Created new user. UUID: " . (string)$user->getUuid() );
     }
 
 }

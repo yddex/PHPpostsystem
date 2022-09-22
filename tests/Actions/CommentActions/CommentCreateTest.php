@@ -1,6 +1,8 @@
 <?php
 namespace Maxim\Postsystem\UnitTests\Actions\CommentActions;
 
+use DateTimeImmutable;
+use Maxim\Postsystem\Blog\AuthToken;
 use Maxim\Postsystem\Blog\Post;
 use PHPUnit\Framework\TestCase;
 use Maxim\Postsystem\Blog\User;
@@ -19,8 +21,11 @@ use Maxim\Postsystem\UUID;
 use Maxim\Postsystem\Blog\Comment;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\CommentNotFoundException;
 use Maxim\Postsystem\Http\Actions\CommentsActions\CommentCreate;
+use Maxim\Postsystem\Http\Auth\BearerTokenAuthentication;
 use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
 use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
+use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
+use Maxim\Postsystem\UnitTests\DummyTokenRepository\DummyTokenRepository;
 
 class CommentCreateTest extends TestCase
 {
@@ -32,26 +37,27 @@ class CommentCreateTest extends TestCase
      */
     //Проверяем, что будет возвращен успешный ответ
     public function testItReturnSuccessfulResponse() :void
-    {
-        $request = new Request([], [], '{"login":"bill","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87", "text":"text"}');
+    {   
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
+        $request = new Request([], ["HTTP_AUTHORIZATION" => "Bearer $token"], '{"post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87", "text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
 
-        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $postRepository = $this->postsRepository([
                 new Post(
                     new UUID("351739ab-fc33-49ae-a62d-b606b7038c87"),
-                    new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password),
+                    new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password"),
                     "title",
                     "text"
                 )]);
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
 
-        $userIdentification = new PasswordAuthentication($userRepository);
+        $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+        $userIdentification = new BearerTokenAuthentication($tokenRepository,$userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository, new DummyLogger);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(SuccessfulResponse::class, $response);
@@ -85,24 +91,28 @@ class CommentCreateTest extends TestCase
      */
     //Проверяем, что будет возвращен ответ с ошибкой если не был передан какойлибо аргумент
     public function testItReturnErrorResponseIfTakeNotFullData() :void
-    {
-        $request = new Request([], [], '{"login":"bill", "text":"text"}');
+    {   
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
+
+        $request = new Request([], ["HTTP_AUTHORIZATION" => "Bearer $token"], '{"text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
         $postRepository = $this->postsRepository([]);
 
         $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
-        $userIdentification = new PasswordAuthentication($userRepository);
+
+        $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+        $userIdentification = new BearerTokenAuthentication($tokenRepository,$userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository, new DummyLogger);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
 
-        $this->expectOutputString('{"success":false,"reason":"No such field: password"}');
+        $this->expectOutputString('{"success":false,"reason":"No such field: post_uuid"}');
 
         $response->send();
     }
@@ -114,19 +124,22 @@ class CommentCreateTest extends TestCase
     //Проверяем, что будет возвращен ответ с ошибкой если пост не был найден
     public function testItReturnErrorResponseIfPostNotFound() :void
     {
-        $request = new Request([], [], '{"login":"bill","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
+
+        $request = new Request([], ["HTTP_AUTHORIZATION" => "Bearer $token"], '{"post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
         $postRepository = $this->postsRepository([]);
 
-        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
+
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
 
-        $userIdentification = new PasswordAuthentication($userRepository);
+        $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+        $userIdentification = new BearerTokenAuthentication($tokenRepository,$userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository, new DummyLogger);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -140,30 +153,32 @@ class CommentCreateTest extends TestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    //Проверяем, что будет возвращен ответ с ошибкой если пользователь не был найден
-    public function testItReturnErrorResponseIfAuthorNotFound() :void
-    {
-        $request = new Request([], [], '{"login":"bill2","password":"password","post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
+    //Проверяем, что будет возвращен ответ с ошибкой если токен не валидный
+    public function testItReturnErrorResponseIfTokenNotFound() :void
+    {   
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
+        $request = new Request([], ["HTTP_AUTHORIZATION" => "Bearer $token"], '{"post_uuid":"351739ab-fc33-49ae-a62d-b606b7038c87","text":"text"}');
         //создаем стабы репозиториев
         $commentRepository = $this->commentsRepository();
 
-        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $postRepository = $this->postsRepository([
             new Post(
                 new UUID("351739ab-fc33-49ae-a62d-b606b7038c87"),
-                new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password),
+                new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password"),
                 "title",
                 "text"
         )]);
         $userRepository = $this->usersRepository([]);
-        $userIdentification = new PasswordAuthentication($userRepository);
+
+        $tokenRepository = new DummyTokenRepository([]);
+        $userIdentification = new BearerTokenAuthentication($tokenRepository,$userRepository);
         //создаем действие
-        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository);
+        $action = new CommentCreate($commentRepository, $userIdentification, $postRepository, new DummyLogger);
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
 
-        $this->expectOutputString('{"success":false,"reason":"Not found"}');
+        $this->expectOutputString('{"success":false,"reason":"Bad token: [60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169]"}');
 
         $response->send();
     }

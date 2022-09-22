@@ -16,13 +16,11 @@ class SqlitePostRepository implements IPostRepository
 {
     private PDO $connection;
     private IUserRepository $userRepository;
-    private LoggerInterface $logger;
 
-    public function __construct(PDO $connection, IUserRepository $userRepository, LoggerInterface $logger)
+    public function __construct(PDO $connection, IUserRepository $userRepository)
     {
         $this->connection = $connection;
         $this->userRepository = $userRepository;
-        $this->logger = $logger;
     }
 
     //запись в таблицу
@@ -38,7 +36,6 @@ class SqlitePostRepository implements IPostRepository
             "text" => $post->getText()
         ]);
 
-        $this->logger->info("Post create. UUID: " . (string)$post->getUuid());
     }
 
 
@@ -75,7 +72,6 @@ class SqlitePostRepository implements IPostRepository
         $statement = $this->connection->prepare("SELECT * FROM posts");
         $statement->execute();
 
-
         return $this->getAllPostsFromStatement($statement);
     }
 
@@ -88,7 +84,6 @@ class SqlitePostRepository implements IPostRepository
             return $this->getPostFromStatement($statement);
         } catch (PostNotFoundException $e) {
             $message = "Post not found. UUID: " . (string)$uuid;
-            $this->logger->warning($message);
             throw new PostNotFoundException($message);
         }
     }
@@ -107,7 +102,5 @@ class SqlitePostRepository implements IPostRepository
     {
         $statement = $this->connection->prepare("DELETE FROM posts WHERE uuid LIKE :uuid");
         $statement->execute(["uuid" => (string)$post->getUuid()]);
-        
-        $this->logger->info("Post deleted. UUID: " . (string)$post->getUuid());
     }
 }

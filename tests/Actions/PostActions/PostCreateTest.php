@@ -1,15 +1,15 @@
 <?php
 namespace Maxim\Postsystem\UnitTests\Actions\PostActions;
 
+use DateTimeImmutable;
+use Maxim\Postsystem\Blog\AuthToken;
 use Maxim\Postsystem\Blog\Post;
 use PHPUnit\Framework\TestCase;
 use Maxim\Postsystem\Blog\User;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\PostNotFoundException;
 use Maxim\Postsystem\Exceptions\RepositoriesExceptions\UserNotFoundException;
 use Maxim\Postsystem\Http\Actions\PostsActions\PostCreate;
-use Maxim\Postsystem\Http\Actions\UserActions\UserFindByLogin;
-use Maxim\Postsystem\Http\Auth\JsonBodyUuidIdentification;
-use Maxim\Postsystem\Http\Auth\PasswordAuthentication;
+use Maxim\Postsystem\Http\Auth\BearerTokenAuthentication;
 use Maxim\Postsystem\Http\ErrorResponse;
 use Maxim\Postsystem\Http\Request;
 use Maxim\Postsystem\Http\SuccessfulResponse;
@@ -17,6 +17,7 @@ use Maxim\Postsystem\Person\Name;
 use Maxim\Postsystem\Repositories\PostRepositories\IPostRepository;
 use Maxim\Postsystem\Repositories\UserRepositories\IUserRepository;
 use Maxim\Postsystem\UnitTests\DummyLogger\DummyLogger;
+use Maxim\Postsystem\UnitTests\DummyTokenRepository\DummyTokenRepository;
 use Maxim\Postsystem\UUID;
 
 
@@ -29,21 +30,22 @@ class PostCreateTest extends TestCase
      */
     //Проверяем, что будет возвращен успешный ответ
     public function testItReturnSuccessfulResponse():void
-    {
+    {   
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
         //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"login":"bill","password":"password","title":"title","text":"text"}');
+        $request = new Request([],["HTTP_AUTHORIZATION" => "Bearer $token"],'{"title":"title","text":"text"}');
 
         //создаем стаб репозитория и передаем автора поста
-        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
-        $userIdentification = new PasswordAuthentication($userRepository);
+        $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+        $userAuthentication = new BearerTokenAuthentication($tokenRepository, $userRepository);
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
 
         //создаем действие
-        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
+        $action = new PostCreate($postRepository, $userAuthentication, new DummyLogger());
         //выполняем действие
         $response = $action->handle($request);
         //ожидаем успешный ответ
@@ -76,85 +78,60 @@ class PostCreateTest extends TestCase
      * @preserveGlobalState disabled
      */
     //Проверяем, что будет возвращен ответ с ошибкой
-    //если пароль автора неверный
-    public function testItReturnErrorResponseIfPasswordNotVerifed() :void
-    {
+    //если токен не верен
+    public function testItReturnErrorResponseIfTokenBad() :void
+    {   
+         $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
          //создаем запрос, и передаем в него данные для создания поста с неверным uuid автора
-         $request = new Request([],[],'{"login":"bill","password":"password2","title":"title","text":"text"}');
+         $request = new Request([],["HTTP_AUTHORIZATION" => "Bearer 60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6c"],'{"title":"title","text":"text"}');
 
-         $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
          //создаем стаб репозитория и передаем автора поста
          $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
-         $userIdentification = new PasswordAuthentication($userRepository);
+
+         $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+         $userAuthentication = new BearerTokenAuthentication($tokenRepository, $userRepository);
  
          //стаб репозитория с постами
          $postRepository = $this->postsRepository();
 
-         $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
+         $action = new PostCreate($postRepository, $userAuthentication, new DummyLogger());
 
          $response = $action->handle($request);
 
          $this->assertInstanceOf(ErrorResponse::class, $response);
 
-         $this->expectOutputString('{"success":false,"reason":"Wrong password!"}');
+         $this->expectOutputString('{"success":false,"reason":"Bad token: [60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6c]"}');
 
          $response->send();
     }
 
-     /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    //Проверяем,что будет возвращен ответ с ошибкой, если пользователь с переданным login
-    //не будет найден
-    public function testItReturnErrorResponseIfUserNotFoundByLogin() :void
-    {
-        //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"login":"bill2","password":"password","title":"title","text":"text"}');
-
-        //создаем стаб репозитория
-        $userRepository = $this->usersRepository([]);
-        $userIdentification = new PasswordAuthentication($userRepository);
-
-        //стаб репозитория с постами
-        $postRepository = $this->postsRepository();
-
-        //создаем действие
-        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger());
-        //выполняем действие
-        $response = $action->handle($request);
-
-        $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"Not found"}');
-
-        $response->send();
-    }
-
-
+     
 
     /**
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
     public function testItReturnErrorResponseIfSendDataNotFull() :void
-    {
+    {   
+        $token = "60d4ccdb841f09c0e519c55aeea90b88b45611170bc90cc6cda989225531ae42b9023e42a6baa169";
         //создаем запрос, и передаем в него данные для создания поста
-        $request = new Request([],[],'{"login":"bill","password":"password","text":"text"}');
+        $request = new Request([],["HTTP_AUTHORIZATION" => "Bearer $token"],'{"text":"text"}');
 
         //создаем стаб репозитория
-        $password = hash("sha256", "password" . "2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa");
         $userRepository = $this->usersRepository([
-            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", $password)
+            new User(new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), new Name("name", "surname"), "bill", "password")
         ]);
-        $userIdentification = new PasswordAuthentication($userRepository);
+
+        $tokenRepository = new DummyTokenRepository([new AuthToken($token, new UUID("2a5f9ba6-b0c2-4143-9ca0-486ca286ebaa"), (new DateTimeImmutable())->modify('+2 day'))]);
+        $userAuthentication = new BearerTokenAuthentication($tokenRepository, $userRepository);
 
         //стаб репозитория с постами
         $postRepository = $this->postsRepository();
         
         //создаем действие
-        $action = new PostCreate($postRepository, $userIdentification, new DummyLogger);
+        $action = new PostCreate($postRepository, $userAuthentication, new DummyLogger);
         //выполняем действие
         $response = $action->handle($request);
 
