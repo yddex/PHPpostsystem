@@ -88,8 +88,9 @@ class SqliteUserRepository implements IUserRepository
 
         $statement = $this->connection->prepare("INSERT INTO users (uuid, name, surname, login, password)
         VALUES (:uuid, :name, :surname, :login, :password);");
-        $name = $user->getName();
 
+        
+        $name = $user->getName();
         $statement->execute([
             "uuid" => (string)$user->getUuid(),
             "name" => $name->getName(),
@@ -99,5 +100,17 @@ class SqliteUserRepository implements IUserRepository
         ]);
 
     }
+
+    public function update(User $user): void
+    {
+        $statement = $this->connection->prepare("UPDATE users SET name = :name, surname = :surname WHERE uuid = :uuid;");
+
+        $name = $user->getName();
+        $statement->execute([
+            "uuid" => (string)$user->getUuid(),  
+            "name" => $name->getName(),
+            "surname" => $name->getSurname(),
+        ]);
+    }   
 
 }

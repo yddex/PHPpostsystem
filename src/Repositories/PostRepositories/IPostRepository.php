@@ -11,5 +11,5 @@ interface IPostRepository
     public function getAll() :array;
     public function getByUUID(UUID $uuid) :Post;
     public function getAllByAuthor(User $author) :array;
-    public function delete(Post $post) :void;
+    public function delete(UUID $uuid) :void;
 }

@@ -98,9 +98,9 @@ class SqlitePostRepository implements IPostRepository
     }
 
     //удаление поста по UUID
-    public function delete(Post $post): void
+    public function delete(UUID $uuid): void
     {
         $statement = $this->connection->prepare("DELETE FROM posts WHERE uuid LIKE :uuid");
-        $statement->execute(["uuid" => (string)$post->getUuid()]);
+        $statement->execute(["uuid" => (string)$uuid]);
     }
 }
