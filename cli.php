@@ -2,7 +2,7 @@
 
 require_once __DIR__ . "/vendor/autoload.php";
 
-
+use Maxim\Postsystem\Commands\FakeData\PopulateDB;
 use Maxim\Postsystem\Commands\Users\CreateUser;
 use Maxim\Postsystem\Commands\Posts\DeletePost;
 use Maxim\Postsystem\Commands\Users\UpdateUser;
@@ -18,7 +18,8 @@ $commandLoader = new ContainerCommandLoader($container,
     [
         'users:create' => CreateUser::class,
         'users:update' => UpdateUser::class,
-        'posts:delete' => DeletePost::class
+        'posts:delete' => DeletePost::class,
+        'fake-data:populate-db' => PopulateDB::class
     ]
 );
 
