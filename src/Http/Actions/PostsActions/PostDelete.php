@@ -48,7 +48,7 @@ class PostDelete implements IAction
             return new ErrorResponse("User not owner post for delete");
         }
 
-        $this->postRepository->delete($post);
+        $this->postRepository->delete($post->getUuid());
         $this->logger->info("POST DELETED. AUTHOR UUID: " . $post->getAuthor()->getUuid());
         return new SuccessfulResponse([]);
     }
