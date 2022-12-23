@@ -5,14 +5,6 @@
             "Maxim\\Postsystem\\": "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-        "Maxim\\Postsystem\\UnitTests\\": "tests/"
-        }
-    },
-    "scripts": {
-        "test": "phpunit tests --testdox --colors"
-    },
     "require": {
         "symfony/polyfill-uuid": "^1.26",
         "psr/container": "^2.0",
@@ -20,8 +12,5 @@
         "vlucas/phpdotenv": "^5.4",
         "symfony/console": "^6.1",
         "fakerphp/faker": "^1.20"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9.5"
     }
 }
